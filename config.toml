@@ -1,4 +1,4 @@
-baseURL = "https://yastrab1.github.io/Blog/"
+baseURL = "https://yastrab1.github.io/"
 title   = "Lukinov Blog"
 languageCode = "en-us"
 theme = "hello-friend"
