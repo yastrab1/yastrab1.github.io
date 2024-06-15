@@ -4,6 +4,3 @@
 [submodule "themes/coder"]
 	path = themes/coder
 	url = https://github.com/luizdepra/hugo-coder
-[submodule "themes/hello-friend"]
-	path = themes/hello-friend
-	url = https://github.com/dhruvSHA256/hello-friend-ng
