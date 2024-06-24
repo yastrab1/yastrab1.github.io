@@ -150,10 +150,10 @@ logoHomeLink = "/"
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Uncomment this if you want a portrait on your start page
 #
- [params.portrait]
-   path     = "/img/image.jpg"
-   alt      = "Portrait"
-   maxWidth = "50px"
+[params.portrait]
+path     = "/img/image.jpg"
+alt      = "Portrait"
+maxWidth = "50px"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Addon: Commento
@@ -255,3 +255,22 @@ url        = "about/"
 identifier = "posts"
 name       = "Posts"
 url        = "posts/"
+[markup]
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
+
+[markup.highlight]
+# Other highlight settings...
+
+[markup.tableOfContents]
+# Other TOC settings...
+
+[security]
+[security.exec]
+allow = ['^dart-sass-embedded$', '^go$', '^npx$', '^postcss$']
+[security.funcs]
+getenv = ['^HUGO_']
+[security.http]
+methods = ['(?i)GET|POST']
+urls = ['.*']
