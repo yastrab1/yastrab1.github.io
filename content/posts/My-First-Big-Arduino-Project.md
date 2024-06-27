@@ -1,7 +1,7 @@
 +++
 title = 'My First Big Arduino Project'
 date = 2024-06-24T17:25:07+02:00
-draft = true
+draft = false
 +++
 
 For the past few years, I have been playing a bit with the microcomputer Arduino.
