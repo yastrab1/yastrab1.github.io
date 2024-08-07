@@ -151,9 +151,9 @@ logoHomeLink = "/"
 # Uncomment this if you want a portrait on your start page
 #
 [params.portrait]
-path     = "/img/image.jpg"
+path     = "/images/profile.png"
 alt      = "Portrait"
-maxWidth = "50px"
+maxWidth = "100px"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Addon: Commento
