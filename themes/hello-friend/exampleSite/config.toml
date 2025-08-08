@@ -3,8 +3,14 @@ title   = "Hello Friend NG"
 languageCode = "en-us"
 theme = "hello-friend-ng"
 
-PygmentsCodeFences = true
-PygmentsStyle = "monokai"
+
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    style = "monokai"
+    lineNos = true
+    lineNumbersInTable = true
 
 paginate  = 10
 rssLimit  = 10  # Maximum number of items in the RSS feed.

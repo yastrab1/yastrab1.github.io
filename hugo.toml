@@ -3,8 +3,15 @@ title   = "Lukinov Blog"
 languageCode = "en-us"
 theme = "hello-friend"
 
-PygmentsCodeFences = true
-PygmentsStyle = "monokai"
+
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = false
+    style = "monokai"
+    lineNos = true
+    lineNumbersInTable = true
+
 
 paginate  = 10
 rssLimit  = 10  # Maximum number of items in the RSS feed.
@@ -255,16 +262,6 @@ url        = "about/"
 identifier = "posts"
 name       = "Posts"
 url        = "posts/"
-[markup]
-[markup.goldmark]
-[markup.goldmark.renderer]
-unsafe = true
-
-[markup.highlight]
-# Other highlight settings...
-
-[markup.tableOfContents]
-# Other TOC settings...
 
 [security]
 [security.exec]
