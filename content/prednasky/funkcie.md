@@ -46,8 +46,28 @@ preto pri niektorých konceptoch nám bude jednoduchšie preskočiť do kompilov
 V podstate každý jazyk keď spúšťa kód má tzv. call stack.
 Call stack je dátova štruktúra <a href="https://www.geeksforgeeks.org/dsa/stack-data-structure/">stack</a>.
 V skratke sa to dá predstaviť ako veža palaciniek vedľa seba - na vežu vieme iba pridať na vrch, a aj iba z vrchu odobrať. 
+Call stack si pamätá aktuálne spustené funkcie a ich kontext(napríklad premenné definované vnútri tejto funkcie). Napríklad si predstavme:
 
-Call stack si pamätá aktuálne spustené funkcie a ich kontext. Napríklad si predstavme:
+
+V skutočnosti ste už call stack určite stretli. Keď v pythone vznikne chyba ktorá nie je napravená alebo chytená, python spanikári, ukončí program a vypíše traceback. Určite ste už videli niečo takéto:
+```
+Traceback (most recent call last):
+  File "/home/luki/PycharmProjects/testing/funkcie.py", line 11, in <module>
+    druha_funkcia()
+  File "/home/luki/PycharmProjects/testing/funkcie.py", line 10, in druha_funkcia
+    prva_funkcia()
+  File "/home/luki/PycharmProjects/testing/funkcie.py", line 6, in prva_funkcia
+    raise ValueError("Nejaka chyba")
+ValueError: Nejaka chyba
+```
+Takýto `traceback` sa dá čítať takto. Je tam napísané (most recent call last). To znamena že posledná funkcia je posledná v tomto stack trace.
+Jeden výpis tracebacku je v forme File <file v ktorej je daná funkcia zavolaná> line <riadok kde bola zavolaná> in <otcovská funkcia> a na
+ďalšom riadku je ako bola zavolaná. Niečo takéto je veľmi užitočné keď sa snažíme zistiť kde bola chyba - vidíme ako bola naša funkcia zavolaná
+a kde nastala chyba.
+
+Tento traceback však nevypisuje všetky informácie v call stacku, konkrétne nie aktuálne definované premenné a ešte niektoré špeciálne hodnoty.
+V textovej forme by to bolo totižto silne nečitateľné. Preto existuje debugger[^1] ktorý je typicky integrovaný do editorov a ukazuje viac
+informácií. Ukážme si to na tomto príklade:
 ```python
 def prva_funkcia():
     b = 4
@@ -59,7 +79,7 @@ def druha_funkcia():
     prva_funkcia()
 druha_funkcia()
 ```
-Poďme po riadkoch. [^1]
+Poďme po riadkoch.
 [^1]: Používam [PyCharm](https://www.jetbrains.com/pycharm/) debugger. Ostatné editory(VSCode, Cursor) by to mali mať veľmi podobné.
 
 {{< figure src="/images/prednasky/funkcie/StackTrace1.png" title="PyCharm debugger na riadku 9" link="/images/prednasky/funkcie/StackTrace1.png">}}
