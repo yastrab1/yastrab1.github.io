@@ -60,7 +60,7 @@ Traceback (most recent call last):
     raise ValueError("Nejaka chyba")
 ValueError: Nejaka chyba
 ```
-Takýto `traceback` sa dá čítať takto. Je tam napísané (most recent call last). To znamena že posledná funkcia je posledná v tomto stack trace.
+Takýto `traceback` sa dá čítať takto. Je tam napísané (most recent call last). To znamena že posledná zavolaná funkcia je zároveň aj posledná v tomto stack trace.
 Jeden výpis tracebacku je v forme File <file v ktorej je daná funkcia zavolaná> line <riadok kde bola zavolaná> in <otcovská funkcia> a na
 ďalšom riadku je ako bola zavolaná. Niečo takéto je veľmi užitočné keď sa snažíme zistiť kde bola chyba - vidíme ako bola naša funkcia zavolaná
 a kde nastala chyba.
