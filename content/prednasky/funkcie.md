@@ -132,3 +132,31 @@ Realisticky, toto je všetko čo by si potreboval vedieť o funkciách v Pythone
 ### Abstract Syntax Tree
 Ako rozhoduje Python ktorý výraz vyhodnotí ako prvý? Vytvorí si tzv. Abstract Syntax Tree(AST). Je to strom kde každý list predstavuje niečo na čom závisí
 rodič. To znamená že napríklad náš ukážkový program sa skompiluje do AST takto:
+{{< figure src="/images/prednasky/funkcie/bigAST.png" link="/images/prednasky/funkcie/bigAST.png">}}
+
+To je na začiatok trochu komplikované, preto sa pozrime na AST jednoduchšieho programu:
+{{< figure src="/images/prednasky/funkcie/smallASTExample.png" link="/images/prednasky/funkcie/smallASTExample.png">}}
+Pôvodný program vyzerá takto:
+```python
+print("Ahoj" + input())
+```
+Koreňom stromu je vrchol Module. To je začiatok každého programu, to isté ako \<module\> v stack trace vyššie.
+Vrchol Expr označuje výraz, konkrétne náš riadok programu. Na to aby sme tento výraz mohli vyhodnotiť však musíme vyhodnotiť jeho deti,
+pričom jeho najvrchnejšie dieťa je funkcia print. 
+
+Ľavá vetva od print nás veľmi nezaujíma, v podstate to vraví Pythonu že pred tým ako chce spustiť print musí túto funkciu načítať do pamäte.
+
+Pravá strana je však zaujímavá. BinOp znamená Binary Operation, takže operácia s dvoma vstupmi a jedným výstupom.
+Na ľavej strane tejto operácie je konšstanta(Ahoj) s ktorou už nič viac netreba spraviť, preto je to listový vrchol.
+Operácia sa volá add, to nás tiež až tak nezaujíma, a pravá strana je znovu výraz ktorý treba vyhodnotiť.
+
+Keď python spúšťa kód ide v presne opačnom poradí - od listov k vrcholu. To znamená že najprv by načítal funkcie input() a print(),
+potom spustil input(), potom spustil operáciu add atď...
+
+To ako sa AST tvorí a optimalizuje je výrazne nad rámec prednášky, ale jeho jediné využitia nie su v spušťaní kódu. Niektoré cool využitia:
+1. Funkcia "Rename symbol" v editoroch funguje na tomto princípe - rozbije si kód na takýto strom a postupne v ňom hľadá tento symbol
+2. Optimalizácia kódu - v takomto strome vieme aplikovať pravidlá ako nejaké časti kódu optimalizovať. V praxi by to bolo omnoho zložitejšie ale napríklad 5*20 môžme
+v takomto grafe nájsť a rovno nahradiť konštantou 100, prípadne odhalenie časti kódu ktorý logicky nemôže nikdy zbehnúť(`if False:`)
+3. Formátovanie/linting. Ak vám niekedy editor vyhodil niečo na štýl: `a < b and b < c` can be replace by `a<b<c` tak za toto môže práve linter.
+
+### este by to chcelo dajaky zaver ale teraz sa mi nechce 
