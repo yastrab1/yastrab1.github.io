@@ -23,8 +23,7 @@ Keďže funkcia predstavuje nejaký blok kódu tak rovnako ako napríklad cykly 
  Potom nasleduje samotný kód funkcie, kde môžeme vidieť kľúčové slovo return. Return je značenie pre "Tu funkcia skončila, vypľuj to čo nasleduje za return". V našom prípade teda vypľujeme cislo*2+2.Funkcia môže obsahovať niekoľko returnov, ak neobsahuje žiaden vráti sa automaticky typ None(nič)
 
 Inak sa dajú predsaviť funkcie aj ako skrinka do ktorej dáme niečo(parametre) a vypľuje niečo iné. V našom prípade by to mohlo vyzerať takto:
-## Ilustrácia trust me bro
-
+{{< figure src="/images/prednasky/funkcie/functionExample.png" link="/images/prednasky/funkcie/functionExample.png">}}
 Ak by sme chceli Pythonu povedať čo očakávame(a pre budúcich programátorov ktorí tento kód budú po nás čítať), dajú sa pridať tzv. type annotations.
 Vráťme sa k nášmu príkladu a pridajme type annotations:
 
@@ -36,7 +35,7 @@ print(plus_dva_krat_dva(2)) # Outputs 6
 print(plus_dva_krat_dva(1000)) # Outputs 20002
 ...
 ```
-
+ --- 
 ## Deeper look
 Okej, základy by boli. Ako fungujú funkcie hlbšie?
 
@@ -60,7 +59,7 @@ Traceback (most recent call last):
     raise ValueError("Nejaka chyba")
 ValueError: Nejaka chyba
 ```
-Takýto `traceback` sa dá čítať takto. Je tam napísané (most recent call last). To znamena že posledná funkcia je posledná v tomto stack trace.
+Takýto `Traceback` sa dá čítať takto. Je tam napísané (most recent call last). To znamena že posledná zavolaná funkcia je posledná v tomto stack trace.
 Jeden výpis tracebacku je v forme File <file v ktorej je daná funkcia zavolaná> line <riadok kde bola zavolaná> in <otcovská funkcia> a na
 ďalšom riadku je ako bola zavolaná. Niečo takéto je veľmi užitočné keď sa snažíme zistiť kde bola chyba - vidíme ako bola naša funkcia zavolaná
 a kde nastala chyba.
@@ -68,42 +67,68 @@ a kde nastala chyba.
 Tento traceback však nevypisuje všetky informácie v call stacku, konkrétne nie aktuálne definované premenné a ešte niektoré špeciálne hodnoty.
 V textovej forme by to bolo totižto silne nečitateľné. Preto existuje debugger[^1] ktorý je typicky integrovaný do editorov a ukazuje viac
 informácií. Ukážme si to na tomto príklade:
-```python
-def prva_funkcia():
+```python {hl_lines=[10]}
+def prva_funkcia(pozdrav):
     b = 4
-    print("Vnutri prvej funkcie")
+    print("Vnutri prvej funkcie " + pozdrav)
+    return True
 
 def druha_funkcia():
     print("Vnutri drhuej funkcie")
     a = 3
-    prva_funkcia()
-druha_funkcia()
+    return prva_funkcia("Python")
+print(druha_funkcia())
 ```
 Poďme po riadkoch.
 [^1]: Používam [PyCharm](https://www.jetbrains.com/pycharm/) debugger. Ostatné editory(VSCode, Cursor) by to mali mať veľmi podobné.
 
-{{< figure src="/images/prednasky/funkcie/StackTrace1.png" title="PyCharm debugger na riadku 9" link="/images/prednasky/funkcie/StackTrace1.png">}}
-Keďže Python pri spustení preskakuje všetky definície funkcií, program začína na riadku 9. Na obrázku pre začiatok:
+{{< figure src="/images/prednasky/funkcie/StackTrace1.png" title="PyCharm debugger na riadku 10" link="/images/prednasky/funkcie/StackTrace1.png">}}
+Keďže Python pri spustení preskakuje všetky definície funkcií, program začína na riadku 10. Na obrázku pre začiatok:
 1. Naľavo vidieť call stack. Aktuálne obsahuje iba \<module\>. To predstavuje aktuálne spúštaný Python modul(typicky teda aktuálnu file).[^2]
-2. V strede je aktuálny kontext. Keďže sme nedefinovali žiadne premenné okrem tých ktoré nám dá Python vždy(napríklad __name__)
+2. V strede je aktuálny kontext. Keďže sme nedefinovali žiadne premenné okrem tých ktoré nám dá Python vždy(napríklad \_\_name\_\_)
 
- [^2]: V iných jazykoch(C,Java...) je typicky funkcia main() ktorá sa zavolá pri spustení kódu, a tým pádom každý kód spustený je vnútri nejakej funkcie. V pythone to tak nie je,
+ [^2]: V iných jazykoch(C, Java…) je typicky funkcia main() ktorá sa zavolá pri spustení kódu, a tým pádom každý kód spustený je vnútri nejakej funkcie. V pythone to tak nie je,
  preto existuje akoby neviditeľná funkcia \<module\>
 
-Následne sa funkcia vykonáva ako každý iný kód až kým nenarazí na kľúčové slovo `return`. Keď narazí na return, stane sa toto:
+Na riadku 10 Python chce zavolať funkciu 
 
- - Call stack odoberie svoj posledný prvok(nazvime ho n)
- - Program counter sa nastaví na riadok z ktorého sme volali túto funkciu(uložený v n)
- - Táto funkcia sa vyhodnotí na výsledok tejto funkcie(to čo `return`-la)
+Keď chceme debugovať funkciu hlbšie v call stack, treba spraviť „step in“. To znamená že vkročíme do funkcie ktorá bola zavolaná na tomto riadku(musíme to špecificky definovať
+lebo často je to nežiadúce, napríklad nechceme vkročiť do funkcie ako `print` lebo veríme že tá funguje správne).
 
- V praxi to funguje takto:
+Keď sa dostaneme na koniec `druha_funkcia` vyzera stack trace takto:
+{{< figure src="/images/prednasky/funkcie/StackTrace2.png" title="PyCharm debugger na konci druhej funkcie" link="/images/prednasky/funkcie/StackTrace2.png">}}
 
-```python
-def plus_dva_krat_dva(cislo):
-   vysledok = cislo*2+2
-   return vysledok
+Zaujiímave veci čo sa zmenili od posledného stavu:
+1. Na stack trace sa pridala funkcia `druha_funkcia` 
+2. Do aktuálneho kontextu sa pridala premenná `a=3`.
 
-print(plus_dva_krat_dva(2)) # Outputs 6
-print(plus_dva_krat_dva(1000)) # Outputs 20002
+Prečo to tak dopodrobna rozoberám je pre poriadne pochopenie kontextu(po anglicky scope) pravidiel v pythone. Pre viac čítania sa dá pozrieť na:  [tejto stránke](https://realpython.com/python-scope-legb-rule/)
+
+Následne sa musí vyhodnotiť výraz za `return`, takže python spustí `prva_funkcia`.
+Keď potom znovu "step in" do funkcie `prva_funkcia` vyzera stack trace takto:
+{{< figure src="/images/prednasky/funkcie/StackTrace3.png" title="PyCharm debugger na začiatku prvej funkcie" link="/images/prednasky/funkcie/StackTrace3.png">}}
+
+Dôležité je že v tomto prípade sa stratila lokálna premenná a. Je to preto, že premenné definované v kontexte jednej funkcie zostávajú iba v tomto kontexte.
+
+Napríklad keby to tak nebolo by to mohlo viesť k zlému kódu kde by jedna funkcia očakávala že jej iná funkcia 
+nastaví premenné a potom by nefungovala ak by bola zavolaná v inom poradí atď…
+
+Taktiež parameter pozdrav bol definovaný ako lokálna premenná v tejto funkcii. 
+{{< figure src="/images/prednasky/funkcie/StackTrace4.png" title="PyCharm debugger na konci prvej funkcie" link="/images/prednasky/funkcie/StackTrace4.png">}}
+Na konci `prva_funkcia` vrátime True, čo znamená že na riadku 8 vyhodnotilo `return prva_funkcia("Python")` na `return True`. 
+
+Tým pádom sa vyhodnotilo `print(druha_funkcia())` na `print(True)`. Takže výsledná konzola vyzerá takto: 
+```text
+Vnutri drhuej funkcie
+Vnutri prvej funkcie Python
+True
 ```
 
+ ---
+## Šialenstvo
+
+Realisticky, toto je všetko čo by si potreboval vedieť o funkciách v Pythone. Ak ťa zaujíma viac, tu to je:
+
+### Abstract Syntax Tree
+Ako rozhoduje Python ktorý výraz vyhodnotí ako prvý? Vytvorí si tzv. Abstract Syntax Tree(AST). Je to strom kde každý list predstavuje niečo na čom závisí
+rodič. To znamená že napríklad náš ukážkový program sa skompiluje do AST takto:

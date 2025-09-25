@@ -6,11 +6,11 @@ theme = "hello-friend-ng"
 
 [markup]
   [markup.highlight]
-    codeFences = true
-    guessSyntax = false
-    style = "monokai"
-    lineNos = true
-    lineNumbersInTable = true
+    guessSyntax = true
+    style = "dracula"
+    lineNos=true
+
+
 
 
 rssLimit  = 10  # Maximum number of items in the RSS feed.
