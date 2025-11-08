@@ -31,8 +31,8 @@ Pri kompilácií s `g++ main.cpp -o main` prvá funkcia zbehne za 0.13332 sekún
 
 Pri kompilácií s ` g++ -O3 -mavx2 main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
 (používajúc `arr_size`=10000)
-> Ako je toto možné? Je to skoro identický kód, jeden ale zbehne skoro 30x rýchlejšie.
->  - Ja, 2025
+
+Jediný rozdiel je riadok `sum += arr[i][j];` v prvej funkcii a `sum += arr[j][i];` v druhej funkcii a má to prekvapivo veľké dôsledky.
 
 Za tieto urýchlenia môžu prevažne dve veci: CPU caching a C++ kompilátor. Poďme sa najprv pozrieť na caching.
 
