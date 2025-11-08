@@ -30,7 +30,7 @@ int sum_2(int** arr) {
 Pri kompilácií s `g++ main.cpp -o main` prvá funkcia zbehne za 0.13332 sekúnd, druhá za 0.307794 sekúnd(spriemerovaných 10 runs).
 
 Pri kompilácií s ` g++ -O3 -mavx2 -mfma main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
-
+(používajúc `arr_size`=10000)
 > Ako je toto možné? Je to skoro identický kód, jeden ale zbehne skoro 30x rýchlejšie.
 >  - Ja, 2025
 
@@ -47,12 +47,131 @@ uloží si ju do cache. Rýchlost pamäte sa udáva v _latency_, čo znamená č
 
 1. L1 cache(~1MB), latency okolo 1ns(!)[^1].
 2. L2 cache(~20MB), latency okolo 4ns[^1].
-3. L3 cache(~30MB, serverové procesory mávajú aj 300MB),  latency okolo 40ns[^1].
-4. RAM(16GB, latency okolo 80ns[^1]).
+3. L3 cache(~30MB, serverové procesory mávajú aj 300MB),  latency okolo 10ns[^1].
+4. RAM(16GB, latency okolo 10-20ns[^1]).
 
 [^1]:(1 nanosekunda = 1/1000000000 alebo jedna **miliardtina!** sekundy)
 
 Procesor sa vždy pozrie či sa táto pamäť nenachádza najprv v jeho caches(najprv pozrie L1, potom L2 a tak ďalej...) aby nemíňal čas.
 Ďalšia optimalizácia ktorú procesor robí je že často programy vyžadujú pamäť blízko pri sebe, preto načítava do cache
 vždy extra kus okolo toho bodu ktorý si program vypýta. [^2]
-[^2]: Tu je dôležitá poznámka že to čo sa nachádza v cache a čo v RAM si spravuje procesor úplne sám, inak by mohlo viesť k tzv. cache poisoning attacks
+[^2]: Tu je dôležitá poznámka že to čo sa nachádza v cache a čo v RAM si spravuje procesor úplne sám, inak by to bolo príliš pomalé a viedlo k rôznym kyberútokom-
+
+Môžme sa pozrieť na rozloženie pamäte `int** arr`. Naše pole je pointer na pointery, preto vyzerá v pamäti nejak takto:
+{{< figure src="/images/prednasky/procesorove_optimalizacie/img.png" title="Rozloženie pamäte" link="/images/prednasky/procesorove_optimalizacie/img.png">}}
+Každý pointer ukazuje na nejaký úplne iný súvislý kus pamäte. Taktiež treba poznamenať že jednotlivé pointre na stĺpce sa nijako nevolajú len som ich pomenoval nech je zrejmé o čo sa jedná.
+
+Keď sa teda pozrieme na náš pôvodný „pomalý" kód, vyzerá takto:
+```cpp
+int sum_2(int** arr) {
+    int sum = 0;
+    for (int i = 0; i < arr_size; i++) {
+        for (int j = 0; j < arr_size; j++) {
+            sum += arr[j][i];
+        }
+    }
+```
+Všimnime si že postupne páry i,j vyzerajú takto:
+
+| hodnota i | hodnota j |
+|-----------|-----------|
+| 0         | 0         |
+| 0         | 1         |
+| 0         | 2         |
+| ...       | ...       |
+| 1         | 0         |
+
+A tak ďalej. To znamená že j sa mení s každou iteráciou, pričom i iba raz za `arr_size` iterácií. 
+Poďme po iteráciach:
+1. `i=0,j=0` Program si vypýta hodnotu `arr[0][0]`. CPU načíta oblasť pamäte okolo `arr[0][0]` do cache.
+2. `i=0,j=1` Program si vypýta hodnotu `arr[1][0]`. Keďže `row1` sa nachádza v pamäti niekde úplne inde, CPU musí vyprázdniť cache a načítať oblasť okolo `arr[1][0]` do cache
+3. `i=0,j=2`. Program si vypýta hodnotu `arr[2][0]`. Keďže `row2` sa nachádza v pamäti niekde úplne inde, CPU musí vyprázdniť cache a načítať oblasť okolo `arr[2][0]` do cache
+To znamená že každá iterácia vyžaduje čitanie z RAM(pre procesor je RAM extrémne pomalý zdroj dát). 
+
+Pozrime sa naopak na náš rýchly kód:
+```cpp
+int sum_1(int** arr) {
+    int sum = 0;
+    for (int i = 0; i < arr_size; i++) {
+        for (int j = 0; j < arr_size; j++) {
+            sum += arr[i][j];
+        }
+    }
+    return sum;
+```
+1. `i=0,j=0` Program si vypýta hodnotu `arr[0][0]`. CPU načíta oblasť pamäte okolo `arr[0][0]` do cache.
+2. `i=0,j=1` Program si vypýta hodnotu `arr[0][1]`. CPU už má túto oblasť v cache, preto ju rovno využije.
+3. ...
+4. `i=1,j=0` Program si vypýta hodnotu `arr[1][0]`. CPU túto oblasť ešte načítanú nemá, preto musí spraviť ďalšie čítanie z pamäte.
+Všimnime si že tu sa stane čítanie z RAM iba približne raz za `arr_size`, čím je tento kód výrazne rýchlejší.[^3] 
+
+[^3]:Je dobré poznamenať že keď si to zrátame, RAM latency okolo 20ns v našom pomalom príklade vychádza na ~20*10000*10000 = 2000000000 ns = 2s. Preto je pomerne prekvapivé že to náš program zvládol za 0.3s. Odpoveďou na to je, že CPU má ešte veľa optimalizačných trikov ktoré používa(napríklad, často keď vyrobíme naraz veľké pole tak sa alokuje blízko pri sebe v pamäti, tým pádom nie každý riadok vyžaduje nové čítanie z RAM) a preto je toto číslo drasticky nižšie, no stále výrazne väčšie.
+
+
+---
+
+Okej, týmto sme vysvetlili túto časť:
+> Pri kompilácií s `g++ main.cpp -o main` prvá funkcia zbehne za 0.13332 sekúnd, druhá za 0.307794 sekúnd(spriemerovaných 10 runs).
+
+Ale stále je myslím veľmi zaujímavé sa pozrieť na toto:
+>Pri kompilácií s ` g++ -O3 -mavx2 -mfma main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
+
+Tu sa už nebudeme rozprávať až tak o tom ako fundamentálne funguje CPU a RAM, ale pozrieme sa na kompilátor.
+
+## Kompilátor
+
+Každý procesorový cyklus sa skladá z:
+1. Fetch - Načíta inštrukciu ktorú ide vykonať
+2. Decode - Dekóduje ktoré obvody musí spustiť
+3. Execute - Vykoná inštrukciu
+
+CPU inštrukcie ale nie sú z jazyka C ani Python, ale je to Assembler. Napríklad naša funkcia sum_1 vyzerá v assembleri takto:
+```assembly
+sum_1(int**):
+        xor     edx, edx
+        xor     esi, esi
+        lea     rcx, [rdi+80000]
+.L15:
+        mov     rax, rdi
+        vpxor   xmm1, xmm1, xmm1
+.L16:
+        vmovdqu ymm3, YMMWORD PTR [rax]
+        vpcmpeqd        xmm5, xmm5, xmm5
+        vpcmpeqd        xmm6, xmm6, xmm6
+        add     rax, 64
+        vmovdqu ymm4, YMMWORD PTR [rax-32]
+        vpgatherqd      xmm0, DWORD PTR [rdx+ymm3*1], xmm5
+        vpgatherqd      xmm3, DWORD PTR [rdx+ymm4*1], xmm6
+        vinserti128     ymm0, ymm0, xmm3, 1
+        vpaddd  ymm1, ymm1, ymm0
+        cmp     rcx, rax
+        jne     .L16
+        vextracti128    xmm0, ymm1, 0x1
+        add     rdx, 4
+        vpaddd  xmm0, xmm0, xmm1
+        vpsrldq xmm1, xmm0, 8
+        vpaddd  xmm0, xmm0, xmm1
+        vpsrldq xmm1, xmm0, 4
+        vpaddd  xmm0, xmm0, xmm1
+        vmovd   eax, xmm0
+        add     esi, eax
+        cmp     rdx, 40000
+        jne     .L15
+        mov     eax, esi
+        vzeroupper
+        ret
+```
+Ako sa asi dá všimnúť, fakt to nie je ľudsky čitateľné. Presne preto existujú programovacie jazyky. 
+
+A ako sa preloží programovací jazyk do assembleru?
+Preloží ho kompilátor(alebo interpreter, to teraz nebudeme riešiť).
+
+Kompilátor má na starosti nejak požuť kód C a preložiť ho do assembleru. Klasicky sa to robí príkazom `g++ main.cpp -o main`.
+Moderné kompilátory sú ale tak múdre že dokážu si všimnúť nejaké časti kódu ktoré sa dajú napísať efektívnejšie, a keď im to povolíme, automaticky
+to vylepšia. Najjednoduchší príklad asi je tzv. constnt unwinding, čo znamená že z `double c = 10*3/5.2` spraví `double c = 5.769230769`.
+Takáto zmena síce nie je veľmi veľká ale ak sa tento kód spustí miliardukrát, ušetrí niekoľko desatín sekundy.
+
+Kompilátoru povolíme tieto optimalizácie pomocou tzv. compiler flags. To sú parametre ktoré dáme kompilátoru a on pomocou nich si dovolí robiť rôzne optimalizácie.
+Najčastejšie sú flags `-O3`, `-O2`, `-O1`, `-O0`, čo sú "balíčky" viacerých flags. -O0 znamená že neurob žiadne optimalizácie a -O3 znamená že skoro všetky[^4]
+[^4]: Prečo by sme si nechceli vždy zapnút -O3? Typicky preto, že ak musí kompilátor hľadať tieto rôzne optimalizácie, na veľkých programoch to bude trvať dlho. Preto keď normálne programujeme, často používame -O0 nech vieme kód rýchlo otestovať a keď tento kód ideme vydať, použijeme -O3 pre maximálny výkon. V veľmi ojedinelých prípadoch sa môže kompilátor pomýliť a spôsobiť chybu pri optimalizácií, preto sa niekedy oplatí skúsiť spustiť kód s nižšou optimalizáciou.
+
