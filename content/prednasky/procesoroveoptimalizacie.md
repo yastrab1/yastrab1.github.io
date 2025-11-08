@@ -105,7 +105,7 @@ int sum_1(int** arr) {
 4. `i=1,j=0` Program si vypýta hodnotu `arr[1][0]`. CPU túto oblasť ešte načítanú nemá, preto musí spraviť ďalšie čítanie z pamäte.
 Všimnime si že tu sa stane čítanie z RAM iba približne raz za `arr_size`, čím je tento kód výrazne rýchlejší.[^3] 
 
-[^3]:Je dobré poznamenať že keď si to zrátame, RAM latency okolo 20ns v našom pomalom príklade vychádza na ~20*10000*10000 = 2000000000 ns = 2s. Preto je pomerne prekvapivé že to náš program zvládol za 0.3s. Odpoveďou na to je, že CPU má ešte veľa optimalizačných trikov ktoré používa(napríklad, často keď vyrobíme naraz veľké pole tak sa alokuje blízko pri sebe v pamäti, tým pádom nie každý riadok vyžaduje nové čítanie z RAM) a preto je toto číslo drasticky nižšie, no stále výrazne väčšie.
+[^3]:Je dobré poznamenať že keď si to zrátame, RAM latency okolo 20ns v našom pomalom príklade vychádza na ~20\*10000\*10000 = 2000000000 ns = 2s. Preto je pomerne prekvapivé že to náš program zvládol za 0.3s. Odpoveďou na to je, že CPU má ešte veľa optimalizačných trikov ktoré používa(napríklad, často keď vyrobíme naraz veľké pole tak sa alokuje blízko pri sebe v pamäti, tým pádom nie každý riadok vyžaduje nové čítanie z RAM) a preto je toto číslo drasticky nižšie, no stále výrazne väčšie.
 
 
 ---
@@ -168,17 +168,17 @@ Preloží ho kompilátor(alebo interpreter, to teraz nebudeme riešiť).
 
 Kompilátor má na starosti nejak požuť kód C a preložiť ho do assembleru. Klasicky sa to robí príkazom `g++ main.cpp -o main`.
 Moderné kompilátory sú ale tak múdre že dokážu si všimnúť nejaké časti kódu ktoré sa dajú napísať efektívnejšie, a keď im to povolíme, automaticky
-to vylepšia. Najjednoduchší príklad asi je tzv. constnt unwinding, čo znamená že z `double c = 10*3/5.2` spraví `double c = 5.769230769`.
+to vylepšia. Najjednoduchší príklad asi je tzv. constant unwinding, čo znamená že napríklad z `double c = 10*3/5.2` spraví `double c = 5.769230769`.
 Takáto zmena síce nie je veľmi veľká ale ak sa tento kód spustí miliardukrát, ušetrí niekoľko desatín sekundy.
 
 Kompilátoru povolíme tieto optimalizácie pomocou tzv. compiler flags. To sú parametre ktoré dáme kompilátoru a on pomocou nich si dovolí robiť rôzne optimalizácie.
 Najčastejšie sú flags `-O3`, `-O2`, `-O1`, `-O0`, čo sú "balíčky" viacerých flags. -O0 znamená že neurob žiadne optimalizácie a -O3 znamená že skoro všetky[^4]
 [^4]: Prečo by sme si nechceli vždy zapnút -O3? Typicky preto, že ak musí kompilátor hľadať tieto rôzne optimalizácie, na veľkých programoch to bude trvať dlho. Preto keď normálne programujeme, často používame -O0 nech vieme kód rýchlo otestovať a keď tento kód ideme vydať, použijeme -O3 pre maximálny výkon. V veľmi ojedinelých prípadoch sa môže kompilátor pomýliť a spôsobiť chybu pri optimalizácií, preto sa niekedy oplatí skúsiť spustiť kód s nižšou optimalizáciou.
 
-S -O3 sú také klasické optimalizácie ktoré dokáže kompilátor nájsť. Napríklad bez -O3 má funkcia sum_2 v assembleri 33 riadkov a bez nej 17, čo nie vždy znamená rýchlejší kód ale často áno.
+-O3 je už samo o sebe dosť dobré. Napríklad bez -O3 má funkcia sum_2 v assembleri 33 riadkov a bez nej 17, čo nie vždy znamená rýchlejší kód ale často áno.
 
 Následne tu je ešte flag `-mavx2`. Všetky flags ktoré začínajú na m(skratka pre machine) povedia kompilátoru niečo o počítači na ktorom bude výsledný kód bežať. Tieto nemôžu byť obsiahnuté v -O3, pretože 
--O3 funguje na (takmer) každom možnom počítači. V prípade že spustíme kód skompilovaný s `-mavx2` bez podpory pre [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions) tak ten program jednoducho nezbehne.
+-O3 funguje na (takmer) každom možnom počítači. V prípade že spustíme kód skompilovaný s `-mavx2` na procesore bez podpory pre [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions) tak ten program jednoducho nezbehne.
 
 A čo to je to AVX2? Je to tzv. SIMD inštrukcia, alebo **S**ingle **I**nstruction **M**ultiple **D**ata inštrukcia, to znamená že dokáže spracovať niekoľko inštrukcií naraz.
 Keď sa pozrieme na výstupný assembler po skompilovaní s avx2, funkcia sum_1, obsahuje inštrukciu `vpaddd  xmm0, xmm1, xmm0`. Bez detailov o tom ako funguje assembler,
