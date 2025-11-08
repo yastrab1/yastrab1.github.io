@@ -29,7 +29,7 @@ int sum_2(int** arr) {
 
 Pri kompilácií s `g++ main.cpp -o main` prvá funkcia zbehne za 0.13332 sekúnd, druhá za 0.307794 sekúnd(spriemerovaných 10 runs).
 
-Pri kompilácií s ` g++ -O3 -mavx2 -mfma main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
+Pri kompilácií s ` g++ -O3 -mavx2 main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
 (používajúc `arr_size`=10000)
 > Ako je toto možné? Je to skoro identický kód, jeden ale zbehne skoro 30x rýchlejšie.
 >  - Ja, 2025
@@ -114,7 +114,7 @@ Okej, týmto sme vysvetlili túto časť:
 > Pri kompilácií s `g++ main.cpp -o main` prvá funkcia zbehne za 0.13332 sekúnd, druhá za 0.307794 sekúnd(spriemerovaných 10 runs).
 
 Ale stále je myslím veľmi zaujímavé sa pozrieť na toto:
->Pri kompilácií s ` g++ -O3 -mavx2 -mfma main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
+>Pri kompilácií s ` g++ -O3 -mavx2 main.cpp -o main` prvá funkcia zbehne za 0.0166178 sekúnd, druhá za 0.32011 sekúnd.
 
 Tu sa už nebudeme rozprávať až tak o tom ako fundamentálne funguje CPU a RAM, ale pozrieme sa na kompilátor.
 
@@ -175,3 +175,17 @@ Kompilátoru povolíme tieto optimalizácie pomocou tzv. compiler flags. To sú 
 Najčastejšie sú flags `-O3`, `-O2`, `-O1`, `-O0`, čo sú "balíčky" viacerých flags. -O0 znamená že neurob žiadne optimalizácie a -O3 znamená že skoro všetky[^4]
 [^4]: Prečo by sme si nechceli vždy zapnút -O3? Typicky preto, že ak musí kompilátor hľadať tieto rôzne optimalizácie, na veľkých programoch to bude trvať dlho. Preto keď normálne programujeme, často používame -O0 nech vieme kód rýchlo otestovať a keď tento kód ideme vydať, použijeme -O3 pre maximálny výkon. V veľmi ojedinelých prípadoch sa môže kompilátor pomýliť a spôsobiť chybu pri optimalizácií, preto sa niekedy oplatí skúsiť spustiť kód s nižšou optimalizáciou.
 
+S -O3 sú také klasické optimalizácie ktoré dokáže kompilátor nájsť. Napríklad bez -O3 má funkcia sum_2 v assembleri 33 riadkov a bez nej 17, čo nie vždy znamená rýchlejší kód ale často áno.
+
+Následne tu je ešte flag `-mavx2`. Všetky flags ktoré začínajú na m(skratka pre machine) povedia kompilátoru niečo o počítači na ktorom bude výsledný kód bežať. Tieto nemôžu byť obsiahnuté v -O3, pretože 
+-O3 funguje na (takmer) každom možnom počítači. V prípade že spustíme kód skompilovaný s `-mavx2` bez podpory pre [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions) tak ten program jednoducho nezbehne.
+
+A čo to je to AVX2? Je to tzv. SIMD inštrukcia, alebo **S**ingle **I**nstruction **M**ultiple **D**ata inštrukcia, to znamená že dokáže spracovať niekoľko inštrukcií naraz.
+Keď sa pozrieme na výstupný assembler po skompilovaní s avx2, funkcia sum_1, obsahuje inštrukciu `vpaddd  xmm0, xmm1, xmm0`. Bez detailov o tom ako funguje assembler,
+inštrukcia vpadd je tzv. 256 bit vector inštrukcia, takže dokáže naraz spraviť 8x32bit operácie alebo 4x64bit operácie. Keďže klasický int je 32bit, tento kód by mal byť približne 8x rýchlejší. 
+A naozaj, 0.13332÷0.0166178 = 8.022. 
+
+Prečo teda sum_2 nedokázalo benefitovať z toho istého? 
+
+Je to opäť kvôli pamäti. Zjednodušene, procesor musí načítavať z 8 rôznych miest z pamäte, a tie straty z toho majú také negatívne efekty že sa často kompilátor rozhodne že sa mu ani neoplatí robiť SIMD vektorizáciu. 
+V podstate by sme sa zbavili 7 inštrukcí na sčítanie, lenže tie sú nič v porovnaní s 7 inštrukciami na čítanie z pamäte, preto by to aj tak kód veľmi neurýchlilo.
