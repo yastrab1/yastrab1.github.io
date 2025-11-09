@@ -58,7 +58,7 @@ vždy extra kus okolo toho bodu ktorý si program vypýta. [^2]
 [^2]: Tu je dôležitá poznámka že to čo sa nachádza v cache a čo v RAM si spravuje procesor úplne sám, inak by to bolo príliš pomalé a viedlo k rôznym kyberútokom-
 
 Môžme sa pozrieť na rozloženie pamäte `int** arr`. Naše pole je pointer na pointery, preto vyzerá v pamäti nejak takto:
-{{< figure src="/images/prednasky/procesorove_optimalizacie/img.png" title="Rozloženie pamäte" link="/images/prednasky/procesorove_optimalizacie/img.png">}}
+{{< figure src="/images/prednasky/procesorove_optimalizacie/memory_Diagram.png" title="Rozloženie pamäte" link="/images/prednasky/procesorove_optimalizacie/memory_Diagram.png">}}
 Každý pointer ukazuje na nejaký úplne iný súvislý kus pamäte. Taktiež treba poznamenať že jednotlivé pointre na stĺpce sa nijako nevolajú len som ich pomenoval nech je zrejmé o čo sa jedná.
 
 Keď sa teda pozrieme na náš pôvodný „pomalý" kód, vyzerá takto:
