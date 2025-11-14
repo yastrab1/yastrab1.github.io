@@ -189,3 +189,13 @@ Prečo teda sum_2 nedokázalo benefitovať z toho istého?
 
 Je to opäť kvôli pamäti. Zjednodušene, procesor musí načítavať z 8 rôznych miest z pamäte, a tie straty z toho majú také negatívne efekty že sa často kompilátor rozhodne že sa mu ani neoplatí robiť SIMD vektorizáciu. 
 V podstate by sme sa zbavili 7 inštrukcí na sčítanie, lenže tie sú nič v porovnaní s 7 inštrukciami na čítanie z pamäte, preto by to aj tak kód veľmi neurýchlilo.
+
+Dá sa to samozrejme zobrať ešte ďalej. Môžeme spraviť tento program paralelizovateľný, to znamená, že ho nebude vykonávať 
+jedno jadro procesora ale niekoľko naraz, prípadne presunúť spracovávanie na grafickú kartu, čo je ale nad rámec prednášky.
+
+Takže čo sme zistili?
+1. Rozloženie pamäte je veľmi dôležité pri aplikáciach ktoré pracujú s veľa dátami
+2. Kompilátor dokáže robiť divy
+3. Procesory su cool
+
+Mier ✌️
