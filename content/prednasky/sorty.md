@@ -28,3 +28,5 @@ prvého poľa alebo z druhého poľa a presuniem ho na koniec výsledného poľa
 Časová zložitosť tohto algoritmu je `O(n log n)`. Prečo? Musím spraviť toto spájanie(s komplexitou `O(n)`) toľkokrát, koľkokrát sa dá
 rozdeliť toto pole na polovice. To nám hovorí funkcia `log` (log s základom 2 má rovnakú komplexitu ako log s základom 10, preto sa zanedbáva).
 
+## Quick sort
+

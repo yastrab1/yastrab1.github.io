@@ -25,6 +25,7 @@ int sum_2(int** arr) {
             sum += arr[j][i];
         }
     }
+    return sum;
 ```
 
 Pri kompilácií s `g++ main.cpp -o main` prvá funkcia zbehne za 0.13332 sekúnd, druhá za 0.307794 sekúnd(spriemerovaných 10 runs).
